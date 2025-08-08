@@ -58,10 +58,13 @@ class bot extends Service {
         }, 1000);
     }
     async addPoolWebhook() {
+        console.log("webhook syncing!", new Date());
         this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+        this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
+
         let poolAddressArray = [];
         // this.ctx.app.addressArray.length
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
             let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
             for (let k = 0; k < ary.length; k++) {
                 poolAddressArray.push(ary[k]);

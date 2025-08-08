@@ -358,13 +358,10 @@ module.exports = app => {
     setTimeout(() => {
         try {
             // ctx.service.bot.solanaListener();                        
-            ctx.service.bot.addPoolWebhook();
+            ctx.service.bot.addPoolWebhook();    
             // if (app.config.sending == 1) {
             //     ctx.service.bot.sendTongzhi();
-            // }
-            // if (app.config.sending == 1) {
-            //     ctx.service.bot.sendTongzhi();
-            // }
+            // }            
             console.log("执行 setTimeout 任务");
         } catch (error) {
             console.error("❌ setTimeout 发生错误:", error);
@@ -372,8 +369,10 @@ module.exports = app => {
 
         // sync_block(ctx);
     }, 1000);
-
-
+    // 一个小时一次
+    setInterval(()=>{        
+        ctx.service.bot.addPoolWebhook();
+    }, 3600 * 1000);
 
     app.once('server', () => {
         console.log('server start');
