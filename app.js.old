@@ -1,0 +1,469 @@
+'use strict';
+const TelegramBot = require('node-telegram-bot-api');
+const moment = require('moment');
+const TronWeb = require('tronweb');
+const getNickname = (msg) => {
+    return (msg.from.first_name ? msg.from.first_name : '') + (msg.from.last_name ? ' ' + msg.from.last_name : '');
+};
+
+function htmlEncodeByRegExp(str) {
+    var temp = '';
+    if (str.length < 1) return '';
+    temp = str.replace(/&/g, '&amp;');
+    temp = temp.replace(/</g, '&lt;');
+    temp = temp.replace(/>/g, '&gt;');
+    temp = temp.replace(/'/g, '&#39;');
+    temp = temp.replace(/"/g, '&quot;');
+    return temp;
+}
+
+const reply_markup = JSON.stringify({
+    inline_keyboard: [
+        [{
+            text: '确认',
+            callback_data: 'sendMess'
+        }, {
+            text: '取消',
+            callback_data: 'cancelSendMess'
+        }]
+    ]
+})
+
+async function get_user(ctx, msg) {
+    let user = await ctx.model.user.getUserById(msg.from.id);
+    if (!user) { //不存在则注册
+        let user = {
+            id: msg.from.id,
+            is_bot: msg.from.is_bot,
+            is_admin: 0,
+            first_name: msg.from.first_name,
+            last_name: msg.from.last_name,
+            username: msg.from.username,
+            add_time: msg.date
+        };
+        await ctx.model.user.addUser(user);
+    } else {
+        let updateUser = {};
+        if (user.first_name !== msg.from.first_name) {
+            updateUser['first_name'] = msg.from.first_name
+        }
+        if (user.last_name !== msg.from.last_name) {
+            updateUser['last_name'] = msg.from.last_name
+        }
+        if (user.username !== msg.from.username) {
+            updateUser['username'] = msg.from.username
+        }
+        if (updateUser) {
+            await ctx.model.user.updateUser(user, msg.from.id);
+        }
+    }
+    return user;
+}
+
+module.exports = app => {
+    let HttpProvider = TronWeb.providers.HttpProvider;
+    let fullNode = new HttpProvider(app.config.apiUrl, 500, false, false, {"TRON-PRO-API-KEY": app.config.apiKeyOne});
+    app.tronWebOne = new TronWeb(
+        fullNode,
+        fullNode,
+        fullNode
+    );
+    app.tronWebTwo = new TronWeb({
+        fullHost: app.config.apiUrl,
+        headers: {"TRON-PRO-API-KEY": app.config.apiKeyTwo},
+        privateKey: '0000000000000000000e00000000000000000000000000000000000000000000'
+    });
+    const bot = new TelegramBot(app.config.botToken, {polling: true});
+    console.log(moment().unix() + 120);
+    bot.on('text', async (msg) => {
+        //私聊
+        console.log(msg)
+        //超时5秒不回复
+        if (Date.now() / 1000 > msg.date + 3600) {
+	console.log("more than 5 seconds");	
+return;
+}	
+        let text = msg.text;
+        if (text) {
+            text = htmlEncodeByRegExp(text.trim());
+        } else {
+            return;
+        }
+        if (msg.chat.id !== msg.from.id) return;
+        const ctx = app.createAnonymousContext();
+        //写入消息记录防止消息重复
+        let data = await ctx.model.user.getMessage(msg.chat.id, msg.message_id);
+        if (data) {
+            return;
+        } else {
+            await ctx.model.user.addMessage({
+                message_id: msg.message_id,
+                text,
+                uid: msg.from.id,
+                chat_id: msg.chat.id,
+                add_time: msg.date
+            });
+        }
+        if (String(msg.chat.id) !== app.config.chatAdminID) {
+            let forwardText =
+                '群组：' + (msg.chat.id === msg.from.id ? '私聊' : msg.chat.title) +
+                '\n用户名：' + (msg.from.username ? '@' + msg.from.username : '') +
+                '\n姓名：' + getNickname(msg) +
+                '\n内容：' + text
+            bot.sendMessage(app.config.chatOther, forwardText)
+        } else {
+
+            bot.sendMessage(app.config.chatAdminID, '转发这条消息？', {
+                'reply_to_message_id': msg.message_id,
+                reply_markup
+            });
+        }
+        //获取用户
+        let user = await get_user(ctx, msg)
+        //禁用用户不回复
+        if (user.status === 0) return;
+        // 首次时候
+        if (new RegExp(/\/start/).test(text)) {
+            if (user.is_admin === 1) {
+                let reply_markup = {
+                    keyboard: [["添加监控数据", "修改监控数据", "删除监控数据"], ["查看用户列表", "禁用用户", "查看监控数据"], ["查询地址"]],
+                    resize_keyboard: true
+                }
+                await bot.sendMessage(msg.chat.id, '您好，管理员！', {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown',
+                    reply_markup
+                });
+            } else {
+                let reply_markup = {keyboard: [["查询地址", "查看监控数据"], ["添加地址监控", "删除地址监控"]], resize_keyboard: true}
+		console.log("/start is enterred");
+                await bot.sendMessage(msg.chat.id, '您好！', {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown',
+                    reply_markup
+                });
+            }
+            return;
+        }
+        if (new RegExp(/^查询地址$/).test(text)) {
+            await bot.sendMessage(msg.chat.id, '直接发送您想要查询的地址给我!', {
+                'reply_to_message_id': msg.message_id,
+                'parse_mode': 'Markdown'
+            });
+            return;
+        }
+        if (new RegExp(/^添加地址监控$/).test(text)) {
+            await bot.sendMessage(msg.chat.id, '*添加地址请按照下列格式：*\n/add TRC20地址 转账预警额度(数字) 余额预警额度(数字)' +
+                '\n\n/add TU4vEruvZwLLkSfV9bNw12EJTPvNr66666 1000 1000', {
+                'reply_to_message_id': msg.message_id,
+                'parse_mode': 'Markdown'
+            });
+            return;
+        }
+        if (new RegExp(/^删除地址监控$/).test(text)) {
+            await bot.sendMessage(msg.chat.id, '*删除地址请按照下列格式：*\n/del TRC20地址' +
+                '\n\n/del TU4vEruvZwLLkSfV9bNw12EJTPvNr66666', {
+                'reply_to_message_id': msg.message_id,
+                'parse_mode': 'Markdown'
+            });
+            return;
+        }
+        if (new RegExp(/^查看监控数据$/).test(text)) {
+            if (user.is_admin === 1) {
+                await ctx.service.bot.getAllAddress(bot, ctx, msg, '',)
+            } else {
+                await ctx.service.bot.getAllAddress(bot, ctx, msg, '', 0, msg.from.id)
+            }
+            return;
+        }
+        // 删地址
+        if (new RegExp((/^\/del/)).test(text)) {
+            let matchList = text.split(' ');
+            if (matchList.length === 2 && matchList[0] === '/del') {
+                let resText = ''
+                if (user.is_admin === 1) {
+                    resText = await ctx.model.monitoringAddress.delAddress(matchList[1]);
+                } else {
+                    resText = await ctx.model.monitoringAddress.delAddress(matchList[1], msg.from.id);
+                }
+                bot.sendMessage(msg.chat.id, resText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+            }
+            return;
+        }
+        if (new RegExp((/^\/add/)).test(text)) {
+            let matchList = text.split(' ');
+            if (matchList.length === 4 && matchList[0] === '/add') {
+                let complianceAddressData = []
+                let address = matchList[1]
+                let monitoring_money = parseInt(matchList[2])
+                let monitoring_balance = parseInt(matchList[3])
+                if (app.tronWebTwo.isAddress(address) && monitoring_money > 0 && monitoring_balance > 0) {
+                    complianceAddressData.push({
+                        address,
+                        monitoring_money,
+                        monitoring_balance,
+                        'user_id': msg.from.id
+                    })
+                    ctx.service.bot.addAddressList(complianceAddressData)
+                    bot.sendMessage(msg.chat.id, '添加监控成功', {
+                        'reply_to_message_id': msg.message_id,
+                        'parse_mode': 'Markdown'
+                    });
+                } else {
+                    bot.sendMessage(msg.chat.id, '添加失败', {
+                        'reply_to_message_id': msg.message_id,
+                        'parse_mode': 'Markdown'
+                    });
+                }
+                return;
+            }
+        }
+        // 管理
+        if (user.is_admin === 1) {
+            // 添加监控数据
+            if (new RegExp(/^添加监控数据$/).test(text)) {
+                let returnText = '*添加地址请按照下列格式：*\n/add\nTRC20地址 转账预警额度(数字) 余额预警额度(数字)' +
+                    '\n\n/add\nTU4vEruvZwLLkSfV9bNw12EJTPvNr66666 1000 1000\n\n' +
+                    '*支持批量添加：*：\n\n/add\nTU4vEruvZwLLkSfV9bNw12EJTPvNr66666 1000 1000\nTU4vEruvZwLLkSfV9bNw12EJTPvNr99999 1000 1000'
+                await bot.sendMessage(msg.chat.id, returnText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+            if (new RegExp(/^修改监控数据$/).test(text)) {
+                let returnText = '*修改监控数据请按照下列格式：*\n' +
+                    '/change TRC20地址 转账预警额度(数字) 余额预警额度(数字)' +
+                    '\n\n/change TU4vEruvZwLLkSfV9bNw12EJTPvNr66666 1000 1000'
+                await bot.sendMessage(msg.chat.id, returnText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+            if (new RegExp(/^删除监控数据$/).test(text)) {
+                let returnText = '*删除监控数据请按照下列格式：*\n' +
+                    '/del TRC20地址' +
+                    '\n\n/del TU4vEruvZwLLkSfV9bNw12EJTPvNr66666'
+                await bot.sendMessage(msg.chat.id, returnText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+            if (new RegExp(/^查看用户列表$/).test(text)) {
+                await ctx.service.bot.getUserList(bot, ctx, msg, '')
+                return;
+            }
+            if (new RegExp(/^禁用用户$/).test(text)) {
+                let returnText = '*修改监控数据请按照下列格式：*\n' +
+                    '/dis 用户id' +
+                    '\n\n/dis 51710390941'
+                await bot.sendMessage(msg.chat.id, returnText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+            // 添加地址
+            if (new RegExp(/^\/add/).test(text)) {
+                let matchList = text.split('\n')
+                let complianceAddressData = []
+                let complianceAddressList = new Set();
+                let addressCount = 0
+                if (matchList.length > 1 && matchList[0] === '/add') {
+                    matchList = matchList.slice(1)
+                    matchList.forEach(matchOnes => {
+                        let matchOnesList = matchOnes.split(' ')
+                        if (matchOnesList.length === 3) {
+                            let address = matchOnesList[0]
+                            let monitoring_money = parseInt(matchOnesList[1])
+                            let monitoring_balance = parseInt(matchOnesList[2])
+                            if (app.tronWebTwo.isAddress(address) && monitoring_money > 0 && monitoring_balance > 0) {
+                                if (!complianceAddressList.has(address)) {
+                                    complianceAddressList.add(address)
+                                    addressCount += 1
+                                    complianceAddressData.push({
+                                        address,
+                                        monitoring_money,
+                                        monitoring_balance,
+                                        'user_id': msg.from.id
+                                    })
+                                }
+                            }
+                        }
+                    })
+                    if (complianceAddressData.length > 0) {
+                        ctx.service.bot.addAddressList(complianceAddressData)
+                    }
+                    let complianceAddressListT = JSON.stringify(complianceAddressList)
+                    if (complianceAddressListT.length > 0) {
+                        text = '添加监控成功，本次添加地址：' + addressCount
+                        bot.sendMessage(msg.chat.id, text, {
+                            'parse_mode': 'Markdown'
+                        });
+                        return
+                    }
+                }
+                bot.sendMessage(msg.chat.id, '添加地址失败', {
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+            // 修改地址
+            if (new RegExp((/^\/change/)).test(text)) {
+                let matchList = text.split(' ');
+                if (matchList.length === 4) {
+                    if (matchList[0] === '/change') {
+                        let address = matchList[1]
+                        let monitoring_money = parseInt(matchList[2])
+                        let monitoring_balance = parseInt(matchList[3])
+                        if (monitoring_money > 0 && monitoring_balance > 0) {
+                            let changeData = {monitoring_money, monitoring_balance}
+                            let changeText = await ctx.model.monitoringAddress.updateAddressData(address, changeData);
+                            bot.sendMessage(msg.chat.id, changeText, {
+                                'reply_to_message_id': msg.message_id,
+                                'parse_mode': 'Markdown'
+                            });
+                        }
+                    }
+                }
+                return;
+            }
+            // 禁用用户
+            if (new RegExp((/(\/dis) (\d+)/)).test(text)) {
+                let matchList = text.match(new RegExp(/(\/dis) (\d+)/));
+                let userId = matchList[2]
+                ctx.model.monitoringAddress.delIdAddress(userId);
+                let resText = await ctx.model.user.disabledUser(userId);
+                bot.sendMessage(msg.chat.id, resText, {
+                    'reply_to_message_id': msg.message_id,
+                    'parse_mode': 'Markdown'
+                });
+                return;
+            }
+        }
+        // 查记录
+        if (app.tronWebTwo.isAddress(text)) {
+            await ctx.service.bot.getOrderHistory(text, msg)
+        }
+    });
+    bot.on('callback_query', async (msg) => {
+        console.log(msg)
+        const ctx = app.createAnonymousContext();
+        //获取用户
+        let user = await get_user(ctx, msg)
+        let splitKey = msg.data.split('_')
+        if (splitKey.length > 1 && splitKey[0] === 'problemsList') {
+            if (user.is_admin === 1) {
+                await ctx.service.bot.getAllAddress(bot, ctx, msg, msg.message.chat.id, parseInt(splitKey[1]))
+            } else {
+                await ctx.service.bot.getAllAddress(bot, ctx, msg, msg.message.chat.id, parseInt(splitKey[1]), msg.from.id)
+            }
+            return;
+        }
+        if (splitKey.length > 1 && splitKey[0] === 'userList') {
+            await ctx.service.bot.getUserList(bot, ctx, msg, msg.message.chat.id, parseInt(splitKey[1]))
+            return;
+        }
+        if (splitKey.length > 1 && splitKey[0] === 'userKeypad') {
+            if (user.is_admin === 1) {
+                await ctx.service.bot.getUserListKeypad(bot, ctx, msg, parseInt(splitKey[1]))
+            }
+            return;
+        }
+        switch (msg.data) {
+            case 'sendMess':
+                ctx.service.bot.getUserListKeypad(bot, ctx, msg)
+                break
+            case 'cancelSendMess':
+                bot.deleteMessage(msg.message.chat.id, msg.message.message_id)
+                break
+            default:
+                try {
+                    let res
+                    if ((msg.message.reply_to_message).hasOwnProperty('photo')) {
+                        res = await bot.sendPhoto(msg.data, msg.message.reply_to_message.photo[0]['file_id']).catch(e => {
+                            return e.response.body
+                        });
+                    } else if ((msg.message.reply_to_message).hasOwnProperty('sticker')) {
+                        res = await bot.sendAnimation(msg.data, msg.message.reply_to_message.sticker['file_id']).catch(e => {
+                            return e.response.body
+                        });
+                    } else {
+                        res = await bot.sendMessage(msg.data, msg.message.reply_to_message.text).catch(e => {
+                            return e.response.body
+                        });
+                    }
+                    if (res.hasOwnProperty('description')) {
+                        bot.editMessageText('发送失败！失败原因：\n' + res['description'], {
+                            chat_id: msg.message.chat.id,
+                            message_id: msg.message.message_id,
+                            'reply_to_message_id': msg.message_id
+                        });
+                    } else {
+                        bot.editMessageText('消息已发送！', {
+                            chat_id: msg.message.chat.id,
+                            message_id: msg.message.message_id,
+                            'reply_to_message_id': msg.message_id
+                        });
+                    }
+                } catch (e) {
+                    console.log(e)
+                    bot.editMessageText('发送失败！', {
+                        chat_id: msg.message.chat.id,
+                        message_id: msg.message.message_id,
+                        'reply_to_message_id': msg.message_id
+                    });
+                }
+                break
+        }
+    })
+    bot.on('message', async (msg) => {
+        if (msg.hasOwnProperty('sticker') || msg.hasOwnProperty('photo')) {
+            if (String(msg.chat.id) === app.config.chatAdminID) {
+                bot.sendMessage(app.config.chatAdminID, '转发这条消息？', {
+                    'reply_to_message_id': msg.message_id,
+                    reply_markup
+                });
+            }
+        }
+    })
+    app.bot = bot;
+    setInterval(() => {
+        const ctx = app.createAnonymousContext();
+        ctx.service.bot.getBlock().catch(e => {
+            ctx.logger.error(e)
+        })
+    }, 2800)
+    // setTimeout(() => {
+    //     const ctx = app.createAnonymousContext();
+    //     ctx.service.bot.getBlock().catch(e => {
+    //         ctx.logger.error(e)
+    //     })
+    // }, 2000)
+
+    app.once('server', () => {
+        console.log('server start');
+    });
+
+    app.on('error', err => {
+        console.error(err);
+    });
+    app.on('request', () => {
+        // if (app.config.env === 'local') {
+        // console.log(1);
+        // }
+    });
+    app.on('response', ctx => {
+        // if (app.config.env === 'local') {
+        console.log(ctx.method + ' ' + ctx.path + ' ' + JSON.stringify(ctx.request.body));
+        const used = Date.now() - ctx.starttime;
+        console.log('      \u001b[33mused time: \u001b[39m', used);
+        // }
+    });
+
+};

@@ -1,0 +1,85 @@
+/* eslint valid-jsdoc: "off" */
+
+'use strict';
+
+/**
+ * @param {Egg.EggAppInfo} appInfo app info
+ */
+module.exports = appInfo => {
+    /**
+     * built-in config
+     * @type {Egg.EggAppConfig}
+     **/
+    const config = {};
+
+    // use for cookie sign key, should change to your own and keep security
+    config.keys = appInfo.name + '_1637830813358_9035';
+
+    // add your middleware config here
+    config.middleware = [];
+
+    config.security = {
+        csrf: {
+            enable: false,
+        },
+        domainWhiteList: ['*'],
+    };
+
+    config.cors = {
+        origin: '*',
+        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
+    };
+
+    config.mysql = {
+        clients: {
+            dbread: {
+                host: '127.0.0.1',
+                port: '3306',
+                user: 'monitoring_data',
+                password: 'ZWnTJFJpSfbtRPcG',
+                database: 'monitoring_data',
+                timezone: '08:00',
+            },
+            dbwrite: {
+                host: '127.0.0.1',
+                port: '3306',
+                user: 'monitoring_data',
+                // password: 'test001',
+                password: 'ZWnTJFJpSfbtRPcG',
+                database: 'monitoring_data',
+                timezone: '08:00',
+            },
+        },
+        app: true,
+        agent: false,
+    };
+
+    config.botToken = '5858016850:AAHRGcpcwgQ4_kcrU4dL_qNSWPVvriPTEXE'
+    // config.botToken = '6360640730:AAE9cb24EyYNPVfbQKCPiG-qQWuJ2kmhmxM'
+    config.apiUrl = 'https://api.trongrid.io'
+    config.apiKeyOne = '8b4e3019-acaf-4363-82ce-ef769530db75'
+    config.apiKeyTwo = 'b3fd3936-c609-4bb9-927d-61e519525bee'
+    //自己id
+    // config.chatAdminID = '5400638335'
+    config.chatAdminID = '5155582905'
+    //监控自己群组id
+    config.chatMy = '-1001713735709'
+    //监控他人群组id
+    config.chatOther = '-1001562460507'
+
+    // add your user config here
+    const userConfig = {
+        // myAppName: 'egg',
+    };
+
+    config.cluster = {
+        listen: {
+            port: 7003
+        }
+    }
+
+    return {
+        ...config,
+        ...userConfig,
+    };
+};
