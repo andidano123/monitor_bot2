@@ -58,37 +58,85 @@ class bot extends Service {
         }, 1000);
     }
     async addPoolWebhook() {
-        // this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
-        // let poolAddressArray = [];
-        // for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
-        //     let ary = this.getPoolAddress(this.ctx.app.addressArray[i]);
-        //     for (let k = 0; k < ary.length; k++) {
-        //         poolAddressArray.push(ary[k]);
+        this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+        let poolAddressArray = [];
+        // this.ctx.app.addressArray.length
+        for (let i = 0; i < 10; i++) {
+            let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
+            for (let k = 0; k < ary.length; k++) {
+                poolAddressArray.push(ary[k]);
+            }
+        }
+        console.log("pool", poolAddressArray)        
+        const apikey = "QN_fc30ec8617d74c74be14c50a9e801881";
+        const webhookId = '1d71494c-62c3-4c8a-aacc-44dfd040c135' // Replace with your actual webhook ID
+        // {
+        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/pause`
+
+        //     const headers = {
+        //         accept: 'application/json',
+        //         'x-api-key': apikey, // Replace with your actual API key
         //     }
+
+        //     await axios
+        //         .post(url, {}, { headers })
+        //         .then(response => {
+        //             console.log("res", response.data)
+        //         })
+        //         .catch(error => {
+        //             console.error('Error:', error.response?.data || error.message)
+        //         })
         // }
+        {
 
-        const url = 'https://api.quicknode.com/webhooks/rest/v1/webhooks'
+            const templateId = 'solanaWalletFilter'
+            const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/template/${templateId}`
 
-        const params = {
-            limit: 20,
-            offset: 0,
+            const payload = {
+                // status: 'paused',
+                templateArgs: {
+                    accounts: poolAddressArray,
+                },
+            }
+
+            const headers = {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                'x-api-key': apikey, // Replace with your actual API key
+            }
+
+            await axios
+                .patch(url, payload, { headers })
+                .then(response => {
+                    console.log("setting", response.data)
+                })
+                .catch(error => {
+                    console.error('Error:', error.response?.data || error.message)
+                })
         }
+        // {
+        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/activate`
 
-        const headers = {
-            accept: 'application/json',
-            'x-api-key': 'qnsec_NGIyM2ViZTAtOGU5ZC00N2RkLTkyYjYtZTA4ZDVmZWI4Mjgw', // Replace with your actual API key
-        }
+        //     const payload = {
+        //         startFrom: 'last',
+        //     }
 
-        await axios
-            .get(url, { headers, params })
-            .then(response => {
-                console.log(response.data)
-            })
-            .catch(error => {
-                console.error('Error:', error.response?.data || error.message)
-            })
+        //     const headers = {
+        //         accept: 'application/json',
+        //         'Content-Type': 'application/json',
+        //         'x-api-key': apikey, // Replace with your actual API key
+        //     }
 
+        //     await axios
+        //         .post(url, payload, { headers })
+        //         .then(response => {
+        //             console.log(response.data)
+        //         })
+        //         .catch(error => {
+        //             console.error('Error:', error.response?.data || error.message)
+        //         })
 
+        // }
     }
     async getPoolAddress(contract) {
         let pooldata = [];
@@ -108,6 +156,7 @@ class bot extends Service {
         await axios
             .request(requestOptions)
             .then(response => {
+                // console.log("response", response.data.data);
                 // pooldata = response.data.data;
                 for (let i = 0; i < response.data.data.length; i++) {
                     pooldata.push(response.data.data[i].pool_id);
