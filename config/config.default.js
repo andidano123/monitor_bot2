@@ -33,18 +33,18 @@ module.exports = appInfo => {
     config.mysql = {
         clients: {
             dbread: {
-                host: '104.233.210.22',
+                host: 'localhost',
                 port: '3306',
-                user: 'monitoring_data',
-                password: 'TXPLa8sfPnBzdPsX',
+                user: 'root',
+                password: '',
                 database: 'monitoring_data',
                 timezone: '08:00',
             },
             dbwrite: {
-                host: '104.233.210.22',
+                host: 'localhost',
                 port: '3306',
-                user: 'monitoring_data',
-                password: 'TXPLa8sfPnBzdPsX',
+                user: 'root',
+                password: '',
                 database: 'monitoring_data',
                 timezone: '08:00',
             },

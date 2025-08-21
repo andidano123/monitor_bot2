@@ -70,53 +70,52 @@ class bot extends Service {
                 poolAddressArray.push(ary[k]);
             }
         }
-        console.log("pool", poolAddressArray)        
+        console.log("pool", poolAddressArray)
         const apikey = "QN_fc30ec8617d74c74be14c50a9e801881";
-        const webhookId = '1d71494c-62c3-4c8a-aacc-44dfd040c135' // Replace with your actual webhook ID
+        var myHeaders = new Headers();
+        myHeaders.append('accept', 'application/json');
+        myHeaders.append('Content-Type', 'application/json');
+        myHeaders.append('x-api-key', apikey); // Replace with your actual API key
+
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+
+        fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.log('error', error));
+
+
         // {
-        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/pause`
+
+        //     const templateId = 'solanaWalletFilter'
+        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/template/${templateId}`
+
+        //     const payload = {
+        //         // status: 'paused',
+        //         templateArgs: {
+        //             accounts: poolAddressArray,
+        //         },
+        //     }
 
         //     const headers = {
         //         accept: 'application/json',
+        //         'Content-Type': 'application/json',
         //         'x-api-key': apikey, // Replace with your actual API key
         //     }
 
         //     await axios
-        //         .post(url, {}, { headers })
+        //         .patch(url, payload, { headers })
         //         .then(response => {
-        //             console.log("res", response.data)
+        //             console.log("setting", response.data)
         //         })
         //         .catch(error => {
         //             console.error('Error:', error.response?.data || error.message)
         //         })
         // }
-        {
-
-            const templateId = 'solanaWalletFilter'
-            const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/template/${templateId}`
-
-            const payload = {
-                // status: 'paused',
-                templateArgs: {
-                    accounts: poolAddressArray,
-                },
-            }
-
-            const headers = {
-                accept: 'application/json',
-                'Content-Type': 'application/json',
-                'x-api-key': apikey, // Replace with your actual API key
-            }
-
-            await axios
-                .patch(url, payload, { headers })
-                .then(response => {
-                    console.log("setting", response.data)
-                })
-                .catch(error => {
-                    console.error('Error:', error.response?.data || error.message)
-                })
-        }
         // {
         //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/activate`
 
@@ -368,7 +367,23 @@ class bot extends Service {
                                 reply_markup,
                                 status: 0,
                                 add_time: (new Date()).getTime() / 1000,
-                                send_time: 0
+                                send_time: 0,
+                                pool_check: 0,
+                                contract: addressData.address,
+                                owner
+                            });
+                        } else {
+                            // 不管价格，要触发
+                            await this.ctx.model.tongzhi.addTongzhi({
+                                chat_id: addressData.chat_id,
+                                text: "兑换：" + checkval,
+                                reply_markup: "",
+                                status: 1,  // 已经发送
+                                add_time: (new Date()).getTime() / 1000,
+                                send_time: 0,
+                                pool_check: 0,
+                                contract: addressData.address,
+                                owner
                             });
                         }
                     }

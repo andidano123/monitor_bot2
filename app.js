@@ -372,7 +372,7 @@ module.exports = app => {
     // 一个小时一次
     setInterval(()=>{        
         ctx.service.bot.addPoolWebhook();
-    }, 3600 * 1000);
+    }, 3600 * 1000 * 3);
 
     app.once('server', () => {
         console.log('server start');
