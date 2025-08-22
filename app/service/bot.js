@@ -59,84 +59,101 @@ class bot extends Service {
     }
     async addPoolWebhook() {
         console.log("webhook syncing!", new Date());
-        this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
-        this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
+        // this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+        // this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
 
-        let poolAddressArray = [];
-        // this.ctx.app.addressArray.length
-        for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
-            let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
-            for (let k = 0; k < ary.length; k++) {
-                poolAddressArray.push(ary[k]);
-            }
-        }
-        console.log("pool", poolAddressArray)
+        // let poolAddressArray = [];
+        // // this.ctx.app.addressArray.length
+        // for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
+        //     let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
+        //     for (let k = 0; k < ary.length; k++) {
+        //         poolAddressArray.push(ary[k]);
+        //     }
+        // }
+        // console.log("pool", poolAddressArray)
         const apikey = "QN_fc30ec8617d74c74be14c50a9e801881";
-        var myHeaders = new Headers();
-        myHeaders.append('accept', 'application/json');
-        myHeaders.append('Content-Type', 'application/json');
-        myHeaders.append('x-api-key', apikey); // Replace with your actual API key
-
-        var requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-            redirect: 'follow'
-        };
-
-        fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
-            .then(response => response.text())
-            .then(result => console.log(result))
-            .catch(error => console.log('error', error));
-
-
+        // get all keys list
         // {
+        //     var myHeaders = new Headers();
+        //     myHeaders.append('accept', 'application/json');
+        //     myHeaders.append('Content-Type', 'application/json');
+        //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
 
-        //     const templateId = 'solanaWalletFilter'
-        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/template/${templateId}`
+        //     var requestOptions = {
+        //         method: 'GET',
+        //         headers: myHeaders,
+        //         redirect: 'follow'
+        //     };
 
-        //     const payload = {
-        //         // status: 'paused',
-        //         templateArgs: {
-        //             accounts: poolAddressArray,
-        //         },
-        //     }
+        //     fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
+        //         .then(response => response.text())
+        //         .then(result => console.log(result))
+        //         .catch(error => console.log('error', error));
+        // }
 
-        //     const headers = {
-        //         accept: 'application/json',
-        //         'Content-Type': 'application/json',
-        //         'x-api-key': apikey, // Replace with your actual API key
-        //     }
+        // getting values
+        {
+            var myHeaders = new Headers();
+            myHeaders.append('accept', 'application/json');
+            myHeaders.append('Content-Type', 'application/json');
+            myHeaders.append('x-api-key', apikey); // Replace with your actual API key
 
-        //     await axios
-        //         .patch(url, payload, { headers })
-        //         .then(response => {
-        //             console.log("setting", response.data)
+            var requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
+
+            fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
+                .then(response => response.text())
+                .then(result => console.log(result))
+                .catch(error => console.log('error', error));
+
+        }
+        // add key and value
+        // {
+        //     var myHeaders = new Headers();
+        //     myHeaders.append('accept', 'application/json');
+        //     myHeaders.append('Content-Type', 'application/json');
+        //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
+
+        //     var requestOptions = {
+        //         method: 'POST',
+        //         headers: myHeaders,
+        //         redirect: 'follow',
+        //         body: JSON.stringify({
+        //             key: 'WATCH_ADDRESSES',
+        //             items: ['EJELT5qeMyZo2unrErwFcfitcRENWQUnV8da8XCGczZc']
         //         })
-        //         .catch(error => {
-        //             console.error('Error:', error.response?.data || error.message)
-        //         })
+        //     };
+
+        //     fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
+        //         .then(response => response.text())
+        //         .then(result => console.log(result))
+        //         .catch(error => console.log('error', error));
+
         // }
         // {
-        //     const url = `https://api.quicknode.com/webhooks/rest/v1/webhooks/${webhookId}/activate`
+        //     var myHeaders = new Headers();
+        //     myHeaders.append('accept', 'application/json');
+        //     myHeaders.append('Content-Type', 'application/json');
+        //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
 
-        //     const payload = {
-        //         startFrom: 'last',
-        //     }
-
-        //     const headers = {
-        //         accept: 'application/json',
-        //         'Content-Type': 'application/json',
-        //         'x-api-key': apikey, // Replace with your actual API key
-        //     }
-
-        //     await axios
-        //         .post(url, payload, { headers })
-        //         .then(response => {
-        //             console.log(response.data)
+        //     var requestOptions = {
+        //         method: 'PATCH',
+        //         headers: myHeaders,
+        //         redirect: 'follow',
+        //         body: JSON.stringify({
+        //             addItems: [
+        //                 'EJELT5qeMyZo2unrErwFcfitcRENWQUnV8da8XCGczZc',
+        //             ],
         //         })
-        //         .catch(error => {
-        //             console.error('Error:', error.response?.data || error.message)
-        //         })
+        //     };
+
+        //     fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
+        //         .then(response => response.text())
+        //         .then(result => console.log(result))
+        //         .catch(error => console.log('error', error));
 
         // }
     }
@@ -208,7 +225,7 @@ class bot extends Service {
             // this.ctx.app.ws.send(subscribeMessage);
         }
     }
-    async handleTransaction(txData) {
+    async handleTransaction(res) {
         // console.log("current address list", this.ctx.app.addressList);
         this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
         this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
@@ -216,8 +233,6 @@ class bot extends Service {
         const addressList = this.ctx.app.addressList;
         try {
 
-            const res = txData[0];
-            console.log("['transactions']", res['transactions']);
             for (let k = 0; k < res['transactions'].length; k++) {
                 const res2 = res['transactions'][k]['raw'];
                 if (res2.meta.err != null) continue;    // 失败的交易不用看了

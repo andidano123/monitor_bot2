@@ -19,7 +19,7 @@ class HomeController extends Controller {
     this.ctx.body = { ok: true, timestamp: Date.now() };
   }
   async callbackBlock() {
-    // console.log("----------------", this.ctx.request);
+    console.log("----------------", this.ctx.request);
     this.ctx.service.bot.handleTransaction(this.ctx.request.body);
     this.ctx.body = { data: "ok" };
   }
