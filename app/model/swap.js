@@ -11,6 +11,11 @@ class swap extends base {
         }
         return 0
     }
+    async isExist(tx){
+        let selectData = await this.findOne('SELECT * FROM tb_swap WHERE transaction_hash=?', tx);
+        if (selectData) return true;
+        return false;
+    }
 }
 
 module.exports = swap;
