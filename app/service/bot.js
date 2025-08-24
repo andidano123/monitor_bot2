@@ -58,19 +58,19 @@ class bot extends Service {
         }, 1000);
     }
     async addPoolWebhook() {
-        try{
+        try {
             console.log("webhook syncing!", new Date());
-            this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
-            this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
-            let poolAddressArray = [];        
-            for (let i = 0; i < this.ctx.app.addressArray.length; i++) {                
-                let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);                
-                for (let k = 0; k < ary.length; k++) {                    
-                    poolAddressArray.push(ary[k]);
-                }
-                if (poolAddressArray.length > 5) break;
-            }
-            console.log("pool", poolAddressArray)
+            // this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+            // this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
+            // let poolAddressArray = [];
+            // for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
+            //     let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
+            //     for (let k = 0; k < ary.length; k++) {
+            //         poolAddressArray.push(ary[k]);
+            //     }
+            //     // if (poolAddressArray.length > 5) break;
+            // }
+            // console.log("pool", poolAddressArray)
             const apikey = "QN_fc30ec8617d74c74be14c50a9e801881";
             // get all keys list
             // {
@@ -78,37 +78,37 @@ class bot extends Service {
             //     myHeaders.append('accept', 'application/json');
             //     myHeaders.append('Content-Type', 'application/json');
             //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
-    
+
             //     var requestOptions = {
             //         method: 'GET',
             //         headers: myHeaders,
             //         redirect: 'follow'
             //     };
-    
+
             //     fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
             //         .then(response => response.text())
             //         .then(result => console.log(result))
             //         .catch(error => console.log('error', error));
             // }
-    
+
             // getting values
             {
                 var myHeaders = new Headers();
                 myHeaders.append('accept', 'application/json');
                 myHeaders.append('Content-Type', 'application/json');
                 myHeaders.append('x-api-key', apikey); // Replace with your actual API key
-    
+
                 var requestOptions = {
                     method: 'GET',
                     headers: myHeaders,
                     redirect: 'follow'
                 };
-    
+
                 fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
                     .then(response => response.text())
                     .then(result => console.log(result))
                     .catch(error => console.log('error', error));
-    
+
             }
             // add key and value
             // {
@@ -116,7 +116,7 @@ class bot extends Service {
             //     myHeaders.append('accept', 'application/json');
             //     myHeaders.append('Content-Type', 'application/json');
             //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
-    
+
             //     var requestOptions = {
             //         method: 'POST',
             //         headers: myHeaders,
@@ -126,40 +126,58 @@ class bot extends Service {
             //             items: ['EJELT5qeMyZo2unrErwFcfitcRENWQUnV8da8XCGczZc']
             //         })
             //     };
-    
+
             //     fetch('https://api.quicknode.com/kv/rest/v1/lists', requestOptions)
             //         .then(response => response.text())
             //         .then(result => console.log(result))
             //         .catch(error => console.log('error', error));
-    
+
             // }
-    
+
             // update wallet list
-            {
-                var myHeaders = new Headers();
-                myHeaders.append('accept', 'application/json');
-                myHeaders.append('Content-Type', 'application/json');
-                myHeaders.append('x-api-key', apikey); // Replace with your actual API key
-    
-                var requestOptions = {
-                    method: 'PATCH',
-                    headers: myHeaders,
-                    redirect: 'follow',
-                    body: JSON.stringify({
-                        addItems: poolAddressArray,
-                    })
-                };
-    
-                fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
-                    .then(response => response.text())
-                    .then(result => console.log(result))
-                    .catch(error => console.log('error', error));
-    
-            }
-        }catch(e){
+            // {
+            //     var myHeaders = new Headers();
+            //     myHeaders.append('accept', 'application/json');
+            //     myHeaders.append('Content-Type', 'application/json');
+            //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
+
+            //     var requestOptions = {
+            //         method: 'PATCH',
+            //         headers: myHeaders,
+            //         redirect: 'follow',
+            //         body: JSON.stringify({
+            //             addItems: poolAddressArray,
+            //         })
+            //     };
+
+            //     fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
+            //         .then(response => response.text())
+            //         .then(result => console.log(result))
+            //         .catch(error => console.log('error', error));
+
+            // }
+
+            // const requestOptions = {
+            //     method: "get",
+            //     url: "https://pro-api.solscan.io/v2.0/transaction/actions",
+            //     params: {
+            //         tx: "2Mdm4XYBzmx2uRJt5yVYyY55my96LxBWcDCXPbtWx9n96gdgRpTYpyLxqiV1E5oaadzX1rU5nDHSaKBm6tkQ5Qf7",
+            //     },
+            //     headers: {
+            //         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3MzE0MDQ1OTI4ODYsImVtYWlsIjoiZ3VvZnVjaGVuZzM0NUBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3MzE0MDQ1OTJ9.1FZBIcarlQSnKfBmQTcLxBif3wm1n2BmDEB1oofbj3E"
+            //     },
+            // }
+            // await axios
+            //     .request(requestOptions)
+            //     .then(response => {
+            //         console.log("data", JSON.stringify(response.data));
+            //     })
+            //     .catch(err => console.error(err));
+
+        } catch (e) {
             console.log('e', e);
         }
-        
+
     }
     async getPoolAddress(contract) {
         let pooldata = [];
@@ -230,77 +248,118 @@ class bot extends Service {
         }
     }
     async handleTransaction(body) {
-        // console.log("current address list", this.ctx.app.addressList);
-        this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
-        this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
+        // this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+        // this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
         const addressArray = this.ctx.app.addressArray;
         const addressList = this.ctx.app.addressList;
         try {
             if (body.data == null) return;
-            const res = body.data[0];            
+            const res = body.data[0];
             for (let k = 0; k < res['transactions'].length; k++) {
                 const transaction = res['transactions'][k];
                 // 处理过
                 if (await this.ctx.model.swap.isExist(transaction.signature)) continue;
                 try {
-                    let isMonitoringMoneyText = ''
-                    let money = 0;
-                    let owner = '';
-                    let fromMint = '';
-                    // 监听同样的群， 都要通知
-                    for (let i = 0; i < addressList.length; i++) {
-                        let addressData = addressList[i];
-                        let contract1 = addressData.address;
-                        let contract2 = '';
-                        try {
-                            if (transaction.balanceChanges.tokens[contract1] != undefined) {
-                                let obj = transaction.balanceChanges.tokens[contract1];
-                                let keys = Object.keys(obj);
-                                owner = keys[0];
-                                fromMint = contract1;
-                                money = obj[owner].change;
-                                console.log("------------------------------------");
-                            } else continue;
-                        } catch (e) {
-                            console.log("e", e);
+                    const requestOptions = {
+                        method: "get",
+                        url: "https://pro-api.solscan.io/v2.0/transaction/actions",
+                        params: {
+                            tx: transaction.signature,
+                        },
+                        headers: {
+                            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3MzE0MDQ1OTI4ODYsImVtYWlsIjoiZ3VvZnVjaGVuZzM0NUBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3MzE0MDQ1OTJ9.1FZBIcarlQSnKfBmQTcLxBif3wm1n2BmDEB1oofbj3E"
+                        },
+                    }
+                    let summaries = null;
+                    await axios
+                        .request(requestOptions)
+                        .then(response => {
+                            summaries = response.data.data.summaries;
+                        })
+                        .catch(err => console.error(err));
+                    if (summaries == null) continue;
+                    let money = 0, money2 = 0;
+                    let flagAdd = false;
+                    let owner = '', contract1 = '', contract2 = '';
+                    for (let i = 0; i < summaries.length; i++) {
+                        if (summaries[i].title.activity_type == "ACTIVITY_TOKEN_ADD_LIQ") {
+                            const item = summaries[i].title;
+                            flagAdd = true;
+                            owner = item.data.account;
+                            contract1 = item.data.token_1;
+                            contract2 = item.data.token_2;
+                            money = item.data.amount_1 / (10 ** item.data.token_decimal_1)
+                            money2 = item.data.amount_2 / (10 ** item.data.token_decimal_2)
+                            break;
                         }
-                        let money2 = 0;
-                        if (Object.keys(transaction.balanceChanges.sol).length > 0) {
-                            money2 = transaction.balanceChanges.sol[owner].change;
-                            contract2 = "So11111111111111111111111111111111111111112";
-                        } else {
-                            let keys = Object.keys(transaction.balanceChanges.tokens);
-                            for(let kk = 0; kk < keys.length; kk ++){
-                                if (keys[kk] == fromMint) continue;
-                                const changes = transaction.balanceChanges.tokens[keys[kk]];
-                                if (changes[owner] != undefined){
-                                    money2 = changes[owner].change;
-                                    contract2 = keys[kk];
+                    }
+                    if (!flagAdd) {
+                        for (let i = 0; i < summaries.length; i++) {
+                            for (let j = 0; j < summaries[i].body.length; j++) {
+                                const item = summaries[i].body[j];
+                                if (item.activity_type == "ACTIVITY_TOKEN_SWAP") {
+                                    owner = item.data.account;
+                                    contract1 = item.data.token_1;
+                                    contract2 = item.data.token_2;
+                                    money = item.data.amount_1 / (10 ** item.data.token_decimal_1)
+                                    money2 = item.data.amount_2 / (10 ** item.data.token_decimal_2)
                                     break;
                                 }
                             }
                         }
-                        const contractInfo1 = await this.getContractInfo(contract1);
-                        const contractInfo2 = await this.getContractInfo(contract2);
+                    }
+
+                    if (money == 0 && money2 == 0) continue;
+                    const operation_model = 2
+                    let sqlData = {
+                        'model': operation_model,
+                        'transaction_hash': transaction.signature,
+                        'money1': money,
+                        'contract1': contract1,
+                        'money2': money2,
+                        'contract2': contract2,
+                        'owner': owner,
+                        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
+                    }
+                    let existTransaction = await this.ctx.model.swap.addTransferRecord(sqlData);
+                    if (existTransaction == 0) continue;
+                    // 监听同样的群， 都要通知
+                    for (let i = 0; i < addressList.length; i++) {
+                        let addressData = addressList[i];
+                        if (addressData.address != contract1 && addressData.address != contract2) continue;
+
+                        const contractInfo1 = await this.getContractInfo(sqlData.contract1);
+                        const contractInfo2 = await this.getContractInfo(sqlData.contract2);
+                        const mainContractInfo = (sqlData.contract1 == addressData.address) ? contractInfo1 : contractInfo2;
                         let checkval = (Math.abs(money) * contractInfo1.price);
                         if (checkval <= 0) checkval = (Math.abs(money2) * contractInfo2.price);
                         if (checkval >= Number(addressData.monitoring_money)) {
-                            isMonitoringMoneyText = '⚠️本次【兑换】交易额度到达预警\n'
                             let text = "";
-                            text = (money > 0 ? ('【购买】**[' + contractInfo2.symbol + '](https://solscan.io/token/' + contractInfo2.contract + ')**' + ' ' + checkval.toFixed(2))
-                                : ('【出售】**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + ' ' + checkval.toFixed(2))) + '\n' +
-                                '*监控地址：*\n`' + addressData.address + '`\n' +
-                                (money < 0 ? (
-                                    '订单详情：**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + Math.abs(money).toFixed(4) + '($' + (Math.abs(money) * contractInfo1.price).toFixed(2) + ') 兑换' +
+                            if (flagAdd) {
+                                const isMonitoringMoneyText = '⚠️本次【添加】交易额度到达预警\n'
+                                text = '【添加】**[' + mainContractInfo.symbol + '](https://solscan.io/token/' + mainContractInfo.contract + ')**' + ' ' + checkval.toFixed(2) + '\n' +
+                                    '*监控地址：*\n`' + addressData.address + '`\n' +
+                                    '订单详情：**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + Math.abs(money).toFixed(4) + '($' + (Math.abs(money) * contractInfo1.price).toFixed(2) + ') 和' +
                                     ' **[' + contractInfo2.symbol + '](https://solscan.io/token/' + contractInfo2.contract + ')**' + Math.abs(money2).toFixed(4) + '($' + (Math.abs(money2) * contractInfo2.price).toFixed(2) + ')\n'
-                                ) : (
-                                    '订单金额：**[' + contractInfo2.symbol + '](https://solscan.io/token/' + contractInfo2.contract + ')**' + Math.abs(money2).toFixed(4) + '($' + (Math.abs(money2) * contractInfo2.price).toFixed(2) + ') 兑换' +
-                                    ' **[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + Math.abs(money).toFixed(4) + '($' + (Math.abs(money) * contractInfo1.price).toFixed(2) + ')\n'
-                                )
-                                ) + '监控金额：' + (addressData.monitoring_money).toFixed(4) + '\n'
-                                + '发币地址：' + contractInfo1.creator + '\n'
-                                + '创建时间：' + this.formatDate(new Date(contractInfo1.create_time * 1000)) + '\n' + isMonitoringMoneyText;
-
+                                    + '监控金额：' + (addressData.monitoring_money).toFixed(4) + '\n'
+                                    + '发币地址：' + mainContractInfo.creator + '\n'
+                                    + '创建时间：' + this.formatDate(new Date(mainContractInfo.create_time * 1000)) + '\n' + isMonitoringMoneyText;
+                            } else {
+                                const isMonitoringMoneyText = '⚠️本次【兑换】交易额度到达预警\n'
+                                text = (sqlData.contract2 == addressData.address ? ('【购买】**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + ' ' + checkval.toFixed(2))
+                                    : ('【出售】**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + ' ' + checkval.toFixed(2))) + '\n' +
+                                    '*监控地址：*\n`' + addressData.address + '`\n' +
+                                    (sqlData.contract1 == addressData.address ? (
+                                        '订单详情：**[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + Math.abs(money).toFixed(4) + '($' + (Math.abs(money) * contractInfo1.price).toFixed(2) + ') 兑换' +
+                                        ' **[' + contractInfo2.symbol + '](https://solscan.io/token/' + contractInfo2.contract + ')**' + Math.abs(money2).toFixed(4) + '($' + (Math.abs(money2) * contractInfo2.price).toFixed(2) + ')\n'
+                                    ) : (
+                                        '订单金额：**[' + contractInfo2.symbol + '](https://solscan.io/token/' + contractInfo2.contract + ')**' + Math.abs(money2).toFixed(4) + '($' + (Math.abs(money2) * contractInfo2.price).toFixed(2) + ') 兑换' +
+                                        ' **[' + contractInfo1.symbol + '](https://solscan.io/token/' + contractInfo1.contract + ')**' + Math.abs(money).toFixed(4) + '($' + (Math.abs(money) * contractInfo1.price).toFixed(2) + ')\n'
+                                    )
+                                    ) + '监控金额：' + (addressData.monitoring_money).toFixed(4) + '\n'
+                                    + '发币地址：' + mainContractInfo.creator + '\n'
+                                    + '创建时间：' + this.formatDate(new Date(mainContractInfo.create_time * 1000)) + '\n' + isMonitoringMoneyText;
+                            }
 
                             let reply_markup = JSON.stringify({
                                 inline_keyboard: [
@@ -326,10 +385,10 @@ class bot extends Service {
                                 owner
                             });
                         } else {
-                            // 不管价格，要触发 -- 为了触发合约
+                            // 不管价格，要触发
                             await this.ctx.model.tongzhi.addTongzhi({
                                 chat_id: addressData.chat_id,
-                                text: "兑换：" + contract1 + ":" + checkval,
+                                text: "兑换：" + checkval,
                                 reply_markup: "",
                                 status: 1,  // 已经发送
                                 add_time: (new Date()).getTime() / 1000,
@@ -340,20 +399,8 @@ class bot extends Service {
                             });
                         }
                     }
-
-                    let sqlData = {
-                        'model': 2,
-                        'transaction_hash': transaction.signature,
-                        'money1': money,
-                        'contract1': fromMint,
-                        'money2': 0,
-                        'contract2': '',
-                        'owner': owner,
-                        'create_time': moment().format('YYYY-MM-DD HH:mm:ss'),
-                    }
-                    await this.ctx.model.swap.addTransferRecord(sqlData);
                 } catch (e) {
-                    console.log("eeee", e);                    
+                    console.log("eeee", e);
                 }
             }
         } catch (error) {
