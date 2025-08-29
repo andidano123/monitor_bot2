@@ -60,17 +60,17 @@ class bot extends Service {
     async addPoolWebhook() {
         try {
             console.log("webhook syncing!", new Date());
-            // this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
-            // this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
-            // let poolAddressArray = [];
-            // for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
-            //     let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
-            //     for (let k = 0; k < ary.length; k++) {
-            //         poolAddressArray.push(ary[k]);
-            //     }
-            //     // if (poolAddressArray.length > 5) break;
-            // }
-            // console.log("pool", poolAddressArray)
+            this.ctx.app.addressArray = await this.ctx.model.monitoringAddress.getAddressArray();
+            this.ctx.app.addressList = await this.ctx.model.monitoringAddress.getAddressList();
+            let poolAddressArray = [];
+            for (let i = 0; i < this.ctx.app.addressArray.length; i++) {
+                let ary = await this.getPoolAddress(this.ctx.app.addressArray[i]);
+                for (let k = 0; k < ary.length; k++) {
+                    poolAddressArray.push(ary[k]);
+                }
+                // if (poolAddressArray.length > 5) break;
+            }
+            console.log("pool", poolAddressArray)
             const apikey = "QN_fc30ec8617d74c74be14c50a9e801881";
             // get all keys list
             // {
@@ -92,6 +92,7 @@ class bot extends Service {
             // }
 
             // getting values
+            let currentList = [];
             {
                 var myHeaders = new Headers();
                 myHeaders.append('accept', 'application/json');
@@ -104,12 +105,28 @@ class bot extends Service {
                     redirect: 'follow'
                 };
 
-                fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
-                    .then(response => response.text())
-                    .then(result => console.log(result))
+                await fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
+                    .then(response => response.json())
+                    .then(result => {
+                        // console.log("res", result);
+                        currentList = result.data.items
+                    })
                     .catch(error => console.log('error', error));
 
             }
+            console.log("leng", currentList.length)
+            const removeItems = [];
+            const addItems = [];
+            for (let i = 0; i < poolAddressArray.length; i++) {
+                if (currentList.indexOf(poolAddressArray[i]) < 0)
+                    addItems.push(poolAddressArray[i]);
+            }
+            for (let i = 0; i < currentList.length; i++) {
+                if (poolAddressArray.indexOf(currentList[i]) < 0)
+                    removeItems.push(currentList[i]);
+            }
+            console.log("remove", removeItems);
+            console.log("addd", addItems);
             // add key and value
             // {
             //     var myHeaders = new Headers();
@@ -135,27 +152,28 @@ class bot extends Service {
             // }
 
             // update wallet list
-            // {
-            //     var myHeaders = new Headers();
-            //     myHeaders.append('accept', 'application/json');
-            //     myHeaders.append('Content-Type', 'application/json');
-            //     myHeaders.append('x-api-key', apikey); // Replace with your actual API key
+            {
+                var myHeaders = new Headers();
+                myHeaders.append('accept', 'application/json');
+                myHeaders.append('Content-Type', 'application/json');
+                myHeaders.append('x-api-key', apikey); // Replace with your actual API key
 
-            //     var requestOptions = {
-            //         method: 'PATCH',
-            //         headers: myHeaders,
-            //         redirect: 'follow',
-            //         body: JSON.stringify({
-            //             addItems: poolAddressArray,
-            //         })
-            //     };
+                var requestOptions = {
+                    method: 'PATCH',
+                    headers: myHeaders,
+                    redirect: 'follow',
+                    body: JSON.stringify({
+                        addItems: addItems,
+                        removeItems: removeItems
+                    })
+                };
 
-            //     fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
-            //         .then(response => response.text())
-            //         .then(result => console.log(result))
-            //         .catch(error => console.log('error', error));
+                fetch('https://api.quicknode.com/kv/rest/v1/lists/WATCH_ADDRESSES', requestOptions)
+                    .then(response => response.text())
+                    .then(result => console.log(result))
+                    .catch(error => console.log('error', error));
 
-            // }
+            }
 
             // const requestOptions = {
             //     method: "get",
